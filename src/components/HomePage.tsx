@@ -43,16 +43,17 @@ const HomePage: React.FC = () => {
 
       {/* Hero section with YouTube video background */}
       <div className="relative overflow-hidden px-4 pb-20 pt-12" style={{ minHeight: '320px' }}>
-        {/* YouTube video background */}
+        {/* Video background */}
         <div className="absolute inset-0 z-0">
-          <iframe
-            src="https://www.youtube.com/embed/jbxokvK39mw?autoplay=1&mute=1&loop=1&playlist=jbxokvK39mw&controls=0&showinfo=0&modestbranding=1&disablekb=1&fs=0&rel=0&iv_load_policy=3&playsinline=1"
-            className="pointer-events-none absolute left-1/2 top-1/2 h-[200%] w-[200%] -translate-x-1/2 -translate-y-1/2"
-            style={{ border: 'none' }}
-            allow="autoplay; encrypted-media"
-            allowFullScreen={false}
-            title="Water background video"
-          />
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="pointer-events-none absolute left-1/2 top-1/2 min-h-full min-w-full -translate-x-1/2 -translate-y-1/2 object-cover"
+          >
+            <source src="https://cdn.coverr.co/videos/coverr-water-surface-with-ripples-4928/1080p.mp4" type="video/mp4" />
+          </video>
         </div>
         {/* Overlay */}
         <div className="absolute inset-0 z-[1] bg-primary/50" />
