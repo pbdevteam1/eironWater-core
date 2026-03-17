@@ -41,9 +41,23 @@ const HomePage: React.FC = () => {
     <div className="min-h-screen" dir={dir}>
       <Header />
 
-      {/* Hero section with water-blue gradient */}
-      <div className="relative bg-gradient-to-b from-primary via-primary/80 to-primary/60 px-4 pb-20 pt-12">
-        <div className="mx-auto max-w-xl text-center">
+      {/* Hero section with YouTube video background */}
+      <div className="relative overflow-hidden px-4 pb-20 pt-12" style={{ minHeight: '320px' }}>
+        {/* YouTube video background */}
+        <div className="absolute inset-0 z-0">
+          <iframe
+            src="https://www.youtube.com/embed/jbxokvK39mw?autoplay=1&mute=1&loop=1&playlist=jbxokvK39mw&controls=0&showinfo=0&modestbranding=1&disablekb=1&fs=0&rel=0&iv_load_policy=3&playsinline=1"
+            className="pointer-events-none absolute left-1/2 top-1/2 h-[200%] w-[200%] -translate-x-1/2 -translate-y-1/2"
+            style={{ border: 'none' }}
+            allow="autoplay; encrypted-media"
+            allowFullScreen={false}
+            title="Water background video"
+          />
+        </div>
+        {/* Overlay */}
+        <div className="absolute inset-0 z-[1] bg-primary/50" />
+        {/* Content */}
+        <div className="relative z-[2] mx-auto max-w-xl text-center">
           <h2 className="mb-2 text-3xl font-bold text-primary-foreground">{t('app.name')}</h2>
           <p className="mb-8 text-primary-foreground/80">{t('app.subtitle')}</p>
           <SearchBar onSearch={setSearchQuery} />
