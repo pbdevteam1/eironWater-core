@@ -30,7 +30,7 @@ const HomePage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   if (activePage === 'dashboard') {
-    return <Dashboard onBack={() => setActivePage(null)} />;
+    return <Dashboard />;
   }
 
   const filteredServices = services.filter(s =>

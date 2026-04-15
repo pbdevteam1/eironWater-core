@@ -1,7 +1,6 @@
 import React from 'react';
-import { LayoutDashboard, ClipboardList, Monitor, Settings, ArrowRight } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, Monitor, Settings } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -10,23 +9,13 @@ import RequestsTab from '@/components/dashboard/RequestsTab';
 import ScreenShareTab from '@/components/dashboard/ScreenShareTab';
 import SettingsTab from '@/components/dashboard/SettingsTab';
 
-interface DashboardProps {
-  onBack?: () => void;
-}
-
-const Dashboard: React.FC<DashboardProps> = ({ onBack }) => {
+const Dashboard: React.FC = () => {
   const { t, dir } = useLanguage();
 
   return (
     <div className="min-h-screen" dir={dir}>
       <Header />
       <main className="container mx-auto px-4 py-6">
-        {onBack && (
-          <Button variant="ghost" size="sm" onClick={onBack} className="mb-4 gap-2">
-            <ArrowRight className="h-4 w-4 rtl:rotate-180" />
-            {t('nav.home')}
-          </Button>
-        )}
         <Tabs defaultValue="dashboard" dir={dir} className="w-full">
           <TabsList className="mb-6 grid w-full grid-cols-4 gap-2 bg-muted p-1">
             <TabsTrigger value="dashboard" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">

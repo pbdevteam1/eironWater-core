@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import LoginForm from '@/components/LoginForm';
 import OtpVerification from '@/components/OtpVerification';
-import HomePage from '@/components/HomePage';
+import Dashboard from '@/components/Dashboard';
 import { Loader2 } from 'lucide-react';
 
 const Index: React.FC = () => {
@@ -17,7 +17,7 @@ const Index: React.FC = () => {
   }
 
   if (otpRequired) return <OtpVerification />;
-  return isAuthenticated ? <HomePage /> : <LoginForm />;
+  return isAuthenticated ? <Dashboard /> : <LoginForm />;
 };
 
 export default Index;
