@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Header from '@/components/Header';
+import logo from '@/assets/meiah-logo.png';
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -40,9 +41,7 @@ const LoginForm: React.FC = () => {
       <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-gradient-to-b from-primary/10 to-background px-4">
         <Card className="w-full max-w-md border-border bg-card shadow-xl">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-              <span className="text-4xl">💧</span>
-            </div>
+            <img src={logo} alt="מי עירון" className="mx-auto mb-4 h-20 w-auto object-contain" />
             <CardTitle className="text-2xl font-bold text-foreground">{t('login.title')}</CardTitle>
             <CardDescription className="text-muted-foreground">{t('app.subtitle')}</CardDescription>
           </CardHeader>

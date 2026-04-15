@@ -1,5 +1,6 @@
 import React from 'react';
 import { Globe, LogOut } from 'lucide-react';
+import logo from '@/assets/meiah-logo.png';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,9 +18,7 @@ const Header: React.FC = () => {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-foreground/20">
-            <span className="text-lg font-bold text-primary-foreground">💧</span>
-          </div>
+          <img src={logo} alt="מי עירון" className="h-10 w-auto object-contain" />
           <div>
             <h1 className="text-lg font-bold leading-tight text-primary-foreground">{t('app.name')}</h1>
             <p className="text-xs text-primary-foreground/70">{t('app.subtitle')}</p>
