@@ -33,7 +33,6 @@ const ScreenShareTab: React.FC = () => {
       const response = await fetch(`${API_BASE_URL}/waterCrop/cobrowse/online-visitors`, {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
           'realm': 'meieiron',
           'access_token': token,
         },
