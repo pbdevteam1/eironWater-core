@@ -14,7 +14,11 @@ const SettingsTab: React.FC = () => {
   const { t } = useLanguage();
 
   // Email notifications for screen share
-  const [notificationEmails, setNotificationEmails] = useState<string[]>([]);
+  const [notificationEmails, setNotificationEmails] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('meieiron_notify_emails') || '[]');
+    } catch { return []; }
+  });
   const [newEmail, setNewEmail] = useState('');
 
   // Register user
