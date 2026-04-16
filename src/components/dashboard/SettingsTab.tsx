@@ -14,7 +14,11 @@ const SettingsTab: React.FC = () => {
   const { t } = useLanguage();
 
   // Email notifications for screen share
-  const [notificationEmails, setNotificationEmails] = useState<string[]>([]);
+  const [notificationEmails, setNotificationEmails] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('meieiron_notify_emails') || '[]');
+    } catch { return []; }
+  });
   const [newEmail, setNewEmail] = useState('');
 
   // Register user
@@ -35,13 +39,17 @@ const SettingsTab: React.FC = () => {
       toast({ title: t('settings.error'), description: t('settings.email_exists'), variant: 'destructive' });
       return;
     }
-    setNotificationEmails([...notificationEmails, email]);
+    const updated = [...notificationEmails, email];
+    setNotificationEmails(updated);
+    localStorage.setItem('meieiron_notify_emails', JSON.stringify(updated));
     setNewEmail('');
     toast({ title: t('settings.saved'), description: t('settings.email_added') });
   };
 
   const handleRemoveEmail = (email: string) => {
-    setNotificationEmails(notificationEmails.filter(e => e !== email));
+    const updated = notificationEmails.filter(e => e !== email);
+    setNotificationEmails(updated);
+    localStorage.setItem('meieiron_notify_emails', JSON.stringify(updated));
   };
 
   const handleRegister = async () => {
