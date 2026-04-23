@@ -44,7 +44,7 @@ interface Visitor {
 }
 
 const API_BASE_URL = 'https://testapis-pb.api-connect.co.il';
-const POLL_INTERVAL = 30000;
+const POLL_INTERVAL = 5000;
 const WAIT_WARNING_MIN = 2;
 const WAIT_DANGER_MIN = 5;
 
