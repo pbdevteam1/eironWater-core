@@ -141,7 +141,7 @@ const ScreenShareTab: React.FC = () => {
                     <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                       <Users className="h-5 w-5 text-primary" />
                       {v.is_online && (
-                        <span className="absolute -bottom-0.5 -end-0.5 h-3 w-3 rounded-full border-2 border-card bg-green-500" />
+                        <span className="absolute -bottom-0.5 -end-0.5 h-3 w-3 rounded-full border-2 border-card bg-success" />
                       )}
                     </div>
                     <div>
