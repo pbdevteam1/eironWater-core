@@ -9,7 +9,9 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { getStoredToken } from '@/lib/api';
+import { toast } from '@/hooks/use-toast';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
