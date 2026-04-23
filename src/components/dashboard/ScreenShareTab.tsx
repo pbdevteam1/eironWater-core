@@ -101,8 +101,14 @@ const ScreenShareTab: React.FC = () => {
         return;
       }
       const data = await response.json();
-      const list: Visitor[] = Array.isArray(data) ? data : [];
-      setVisitors(list.filter(v => v.is_online !== false));
+      const list: Visitor[] = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.visitors)
+          ? data.visitors
+          : Array.isArray(data?.data)
+            ? data.data
+            : [];
+      setVisitors(list.filter(v => v && v.is_online !== false));
       setError(null);
     } catch {
       setError('שגיאה בתקשורת עם השרת');
