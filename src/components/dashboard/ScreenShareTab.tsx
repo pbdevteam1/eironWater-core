@@ -122,7 +122,9 @@ const ScreenShareTab: React.FC = () => {
   }, []);
 
   const handleJoin = async (v: Visitor) => {
-    if (!v.short_id) {
+    const visitorId = v.unique_id || v.short_id;
+
+    if (!visitorId || !v.short_id) {
       toast({ title: 'חסר מזהה visitor', variant: 'destructive' });
       return;
     }
@@ -131,7 +133,7 @@ const ScreenShareTab: React.FC = () => {
       toast({ title: 'לא מחובר', variant: 'destructive' });
       return;
     }
-    setJoiningId(v.unique_id || v.short_id);
+    setJoiningId(visitorId);
     try {
       const origin = window.location.origin;
       const identity = getIdentity(v);
@@ -181,7 +183,7 @@ const ScreenShareTab: React.FC = () => {
       };
 
       const res = await fetch(
-        `${API_BASE_URL}/WCP/visitors/${v.short_id}/watch_url`,
+        `${API_BASE_URL}/WCP/visitors/${visitorId}/watch_url`,
         {
           method: 'POST',
           headers: {
@@ -194,7 +196,10 @@ const ScreenShareTab: React.FC = () => {
       );
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        toast({ title: data.message || `שגיאה בהתחברות לסשן (${res.status})`, variant: 'destructive' });
+        toast({
+          title: data.message || data.error || `שגיאה בהתחברות לסשן (${res.status})`,
+          variant: 'destructive',
+        });
         return;
       }
       const data = await res.json();
