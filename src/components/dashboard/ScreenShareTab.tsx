@@ -401,18 +401,16 @@ const ScreenShareTab: React.FC = () => {
 
                   {/* Actions */}
                   <TableCell className={align}>
-                    {v.watch_link ? (
+                    {v.short_id ? (
                       <Button
-                        asChild
                         size="sm"
                         variant="default"
                         className="gap-1 text-xs"
-                        disabled={v.is_supported === false}
+                        disabled={v.is_supported === false || joiningId === (v.unique_id || v.short_id)}
+                        onClick={() => handleJoin(v)}
                       >
-                        <a href={v.watch_link} target="_blank" rel="noopener noreferrer">
-                          <Video className="h-3.5 w-3.5" />
-                          צפה במסך
-                        </a>
+                        <Video className="h-3.5 w-3.5" />
+                        {joiningId === (v.unique_id || v.short_id) ? 'מתחבר...' : 'צפה במסך'}
                       </Button>
                     ) : (
                       <span className="text-xs text-muted-foreground">—</span>
