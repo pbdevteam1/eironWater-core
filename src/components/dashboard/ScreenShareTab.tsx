@@ -102,7 +102,7 @@ const ScreenShareTab: React.FC = () => {
     const token = getStoredToken();
     if (!token) return;
     try {
-      const response = await fetch(`${API_BASE_URL}/WCP/getWaitingRequests`, {
+      const response = await fetch(`${API_BASE_URL}/WCP/getWaitingVisitors`, {
         method: 'GET',
         headers: { realm: 'meieiron', 'access-token': token },
       });
