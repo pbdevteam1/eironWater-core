@@ -541,18 +541,15 @@ const ScreenShareTab: React.FC = () => {
                         ? 'border-transparent bg-yellow-500/15 text-yellow-700 dark:text-yellow-400'
                         : '';
 
-                  // Elapsed time since insertDate
+                  // Elapsed time since insertDate (HH:MM total — no days unit)
                   let elapsedLabel = '—';
                   let isOverdue = false;
                   if (r.insertDate) {
-                    const totalSec = Math.max(0, Math.floor((Date.now() - new Date(r.insertDate).getTime()) / 1000));
-                    const days = Math.floor(totalSec / 86400);
-                    const hours = Math.floor((totalSec % 86400) / 3600);
-                    const minutes = Math.floor((totalSec % 3600) / 60);
-                    const seconds = totalSec % 60;
-                    if (days > 0) elapsedLabel = `${days} ימים ${hours}:${String(minutes).padStart(2, '0')}`;
-                    else elapsedLabel = `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-                    isOverdue = totalSec >= 86400;
+                    const totalMin = Math.max(0, Math.floor((Date.now() - new Date(r.insertDate).getTime()) / 60_000));
+                    const hours = Math.floor(totalMin / 60);
+                    const minutes = totalMin % 60;
+                    elapsedLabel = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+                    isOverdue = totalMin >= 24 * 60;
                   }
 
                   return (
