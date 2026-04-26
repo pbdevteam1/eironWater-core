@@ -173,7 +173,7 @@ const ScreenShareTab: React.FC = () => {
 
     setSending(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/WCP/sendEmail`, {
+      const response = await fetch(`${API_BASE_URL}/WCP/sendCBemail`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
