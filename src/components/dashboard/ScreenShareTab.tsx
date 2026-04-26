@@ -177,8 +177,9 @@ const ScreenShareTab: React.FC = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': token,
           realm: 'meieiron',
+          'x-api-key': token,
+          'access-token': token,
         },
         body: JSON.stringify(payload),
       });
