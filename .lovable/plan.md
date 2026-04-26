@@ -22,7 +22,11 @@ POST https://testapis-pb.api-connect.co.il/WCP/sendCBemail
 {
   "to": "user@example.com",
   "subject": "פנייה ABC123 / استفسار ABC123",
-  "body": "שלום,\n\nבהמשך לפנייתך באתר מי עירון...\n\n— — —\n\nالسلام عليكم،\n\nتكملةً لاستفساركم...\n\n— — —\n\nקישור לטופס: https://...\nرابط النموذج: https://...",
+  "body": "שלום,\n\nבהמשך לפנייתך באתר מי עירון...\n\n— — —\n\nالسلام عليكم،\n\nتكملةً لاستفساركم...",
+  "bodyHtml": "<!DOCTYPE html><html lang=\"he\" dir=\"rtl\">...<body dir=\"rtl\">...</body></html>",
+  "contentType": "text/html",
+  "language": "he",
+  "direction": "rtl",
   "metadata": {
     "lookupCode": "ABC123",
     "phoneNumber": "0501234567",
@@ -37,15 +41,19 @@ POST https://testapis-pb.api-connect.co.il/WCP/sendCBemail
 ### סכמת השדות
 | שדה                          | טיפוס    | חובה | תיאור |
 |-------------------------------|----------|------|-------|
-| `to`                          | string   | ✅   | כתובת מייל יחידה של הנמען. **הערה**: כרגע הלקוח שולח את `emails` כמחרוזת בודדת. אם בעתיד יהיה צורך לתמוך במספר נמענים מופרדים בפסיקים — קלוד צריך לפרק. |
+| `to`                          | string   | ✅   | כתובת מייל יחידה של הנמען. אם בעתיד יהיה צורך לתמוך במספר נמענים מופרדים בפסיקים — קלוד יפרק. |
 | `subject`                     | string   | ✅   | נושא המייל. דו-לשוני (עברית + ערבית) כברירת מחדל, ניתן לעריכה ע"י הסוכן. |
-| `body`                        | string   | ✅   | גוף המייל, plain text עם `\n` כשבירת שורה. דו-לשוני. אם הסוכן סימן "צרף קישור", הלקוח כבר מוסיף את שורות הקישור לפני השליחה — קלוד **לא** צריך להוסיף שוב. |
-| `metadata`                    | object   | ✅   | מטא-דאטה לוגיסטית לתיעוד/לוגים. השדות אינפורמטיביים בלבד — אין צורך לשלב אותם בגוף המייל. |
+| `body`                        | string   | ✅   | גוף המייל ב-**plain text** עם `\n` כשבירת שורה. משמש כ-fallback ללקוחות מייל ישנים שלא תומכים ב-HTML. |
+| `bodyHtml`                    | string   | ✅   | גוף המייל ב-**HTML מלא ומעוצב** (כולל `<!DOCTYPE>`, `<html lang dir>`, `<body dir>`, inline styles). מוכן לשליחה ישירה כ-`text/html`. ה-HTML כבר כולל RTL לעברית/ערבית, header עם הלוגו הטקסטואלי "מי עירון / مياه عيرون", body מעוצב, ו-footer. URLs בתוכן הומרו אוטומטית ל-`<a>` clickable. |
+| `contentType`                 | string   | ✅   | תמיד `"text/html"`. רומז לקלוד באיזה Content-Type לשלוח את המייל בפועל (multipart/alternative עם שני הגרסאות = best practice). |
+| `language`                    | string   | ✅   | קוד שפה: `"he"` / `"ar"` / `"en"`. נקבע לפי שפת ה-UI שנבחרה ע"י הסוכן בעת השליחה. |
+| `direction`                   | string   | ✅   | `"rtl"` עבור he/ar, `"ltr"` עבור en. מופיע גם בתוך ה-`bodyHtml` בתגיות `<html dir>` ו-`<body dir>`. |
+| `metadata`                    | object   | ✅   | מטא-דאטה לוגיסטית לתיעוד/לוגים. אינפורמטיבית בלבד — אין צורך לשלב בגוף המייל (ה-HTML כבר כולל את כל מה שצריך). |
 | `metadata.lookupCode`         | string   | ✅   | קוד הפנייה במערכת מי עירון. |
 | `metadata.phoneNumber`        | string   | ⬜   | טלפון הלקוח (יכול להיות ריק). |
 | `metadata.customerCity`       | string   | ⬜   | עיר הלקוח. |
 | `metadata.formUrl`            | string   | ⬜   | קישור לטופס המקורי. |
-| `metadata.attachedFormLink`   | boolean  | ✅   | האם הסוכן בחר לצרף את הקישור ל-body. |
+| `metadata.attachedFormLink`   | boolean  | ✅   | האם הסוכן בחר לצרף את הקישור (כבר משובץ ב-`body` וב-`bodyHtml`). |
 | `metadata.insertDate`         | string   | ⬜   | חותמת זמן יצירת הפנייה (ISO 8601). |
 
 ### תגובה מצופה מהשרת
@@ -59,7 +67,14 @@ POST https://testapis-pb.api-connect.co.il/WCP/sendCBemail
 { "success": false, "error": "תיאור השגיאה" }
 ```
 
-הלקוח בודק רק את `response.ok` — אם ה-status מחוץ ל-2xx, מציג toast שגיאה עם ה-status code. אם תרצה הודעה ידידותית יותר, החזר JSON עם `message` או `error` ואני אעדכן את הלקוח לקרוא אותו.
+הלקוח בודק רק את `response.ok`. אם תרצה הודעה ידידותית יותר, החזר JSON עם `message` או `error`.
+
+### המלצה לשליחה בצד-השרת
+שלח את המייל כ-`multipart/alternative` עם שתי גרסאות:
+1. `text/plain; charset=utf-8` ← הערך של `body`
+2. `text/html; charset=utf-8` ← הערך של `bodyHtml` (מוכן לשליחה כמו שהוא, כולל RTL)
+
+ה-`bodyHtml` כבר כולל `dir="rtl"` ב-`<html>` וב-`<body>`, charset, viewport meta, ו-inline styles — אין צורך לעטוף אותו שוב.
 
 ### דרישות פונקציונליות מצד-השרת
 1. **אימות הטוקן** — לקרוא את `x-api-key` (או `access-token` כ-fallback), לאמת מול אותה מערכת אימות שמשמשת את שאר ה-WCP endpoints.
