@@ -1,10 +1,14 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { Monitor, RefreshCw, Search, ExternalLink, Phone, Video } from 'lucide-react';
+import { Monitor, RefreshCw, Search, ExternalLink, Phone, Video, Mail } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
@@ -97,6 +101,26 @@ const ScreenShareTab: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [joiningId, setJoiningId] = useState<string | null>(null);
   const [, setTick] = useState(0);
+
+  // Email modal state for waiting requests
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
+  const [emailTarget, setEmailTarget] = useState<WaitingRequest | null>(null);
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailBody, setEmailBody] = useState('');
+  const [attachFormLink, setAttachFormLink] = useState(false);
+
+  const openEmailModal = (r: WaitingRequest) => {
+    setEmailTarget(r);
+    setEmailSubject(`פנייה ${r.lookupCode || ''}`.trim());
+    setEmailBody('');
+    setAttachFormLink(false);
+    setEmailModalOpen(true);
+  };
+
+  const handleSendEmail = () => {
+    setEmailModalOpen(false);
+    toast({ title: 'המייל נשלח', description: emailTarget?.emails || '' });
+  };
 
   const loadWaitingRequests = useCallback(async () => {
     const token = getStoredToken();
@@ -479,58 +503,125 @@ const ScreenShareTab: React.FC = () => {
                 <TableRow className="border-border bg-primary/10">
                   <TableHead className={`${align} font-bold text-foreground`}>קוד זיהוי</TableHead>
                   <TableHead className={`${align} font-bold text-foreground`}>תאריך פתיחה</TableHead>
-                  <TableHead className={`${align} font-bold text-foreground`}>טופס</TableHead>
                   <TableHead className={`${align} font-bold text-foreground`}>סטטוס</TableHead>
-                  <TableHead className={`${align} font-bold text-foreground`}>טלפון</TableHead>
-                  <TableHead className={`${align} font-bold text-foreground`}>אימייל</TableHead>
                   <TableHead className={`${align} font-bold text-foreground`}>עיר</TableHead>
+                  <TableHead className={`${align} font-bold text-foreground`}>פעולות</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {waitingRequests.map((r, idx) => (
-                  <TableRow key={r.lookupCode || idx} className="hover:bg-muted/50">
-                    <TableCell className={`${align} font-mono text-xs text-foreground`}>
-                      {r.lookupCode || '—'}
-                    </TableCell>
-                    <TableCell className={`${align} text-xs text-muted-foreground`}>
-                      {r.insertDate ? new Date(r.insertDate).toLocaleString('he-IL') : '—'}
-                    </TableCell>
-                    <TableCell className={`${align} max-w-[200px]`}>
-                      {r.formUrl ? (
-                        <a
-                          href={r.formUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 truncate text-xs text-primary hover:underline"
-                          title={r.formUrl}
-                        >
-                          <ExternalLink className="h-3 w-3 shrink-0" />
-                          <span className="truncate">{r.formUrl.replace(/^https?:\/\//, '')}</span>
-                        </a>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className={align}>
-                      <Badge variant="outline" className="text-xs">{r.status || '—'}</Badge>
-                    </TableCell>
-                    <TableCell className={`${align} font-mono text-xs text-foreground`}>
-                      {r.phoneNumber || '—'}
-                    </TableCell>
-                    <TableCell className={`${align} text-xs text-foreground`}>
-                      {r.emails || '—'}
-                    </TableCell>
-                    <TableCell className={`${align} text-sm text-muted-foreground`}>
-                      {r.customerCity || '—'}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {waitingRequests.map((r, idx) => {
+                  const statusStr = String(r.status ?? '').trim();
+                  const statusLabel = statusStr === '1' ? 'בוצע' : statusStr === '0' ? 'ממתין' : (statusStr || '—');
+                  const statusClass =
+                    statusStr === '1'
+                      ? 'border-transparent bg-success/15 text-success'
+                      : statusStr === '0'
+                        ? 'border-transparent bg-yellow-500/15 text-yellow-700 dark:text-yellow-400'
+                        : '';
+                  return (
+                    <TableRow key={r.lookupCode || idx} className="hover:bg-muted/50">
+                      <TableCell className={`${align} font-mono text-xs text-foreground`}>
+                        {r.lookupCode || '—'}
+                      </TableCell>
+                      <TableCell className={`${align} text-xs text-muted-foreground`}>
+                        {r.insertDate ? new Date(r.insertDate).toLocaleString('he-IL') : '—'}
+                      </TableCell>
+                      <TableCell className={align}>
+                        <Badge variant="outline" className={`text-xs ${statusClass}`}>{statusLabel}</Badge>
+                      </TableCell>
+                      <TableCell className={`${align} text-sm text-muted-foreground`}>
+                        {r.customerCity || '—'}
+                      </TableCell>
+                      <TableCell className={align}>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-green-600 hover:bg-green-500/10"
+                            disabled={!r.phoneNumber}
+                            onClick={() => r.phoneNumber && window.open(`tel:${r.phoneNumber}`)}
+                            title={r.phoneNumber || ''}
+                          >
+                            <Phone className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-amber-600 hover:bg-amber-500/10"
+                            disabled={!r.emails}
+                            onClick={() => openEmailModal(r)}
+                            title={r.emails || ''}
+                          >
+                            <Mail className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
         )}
       </CardContent>
     </Card>
+
+    {/* Email modal for waiting requests */}
+    <Dialog open={emailModalOpen} onOpenChange={setEmailModalOpen}>
+      <DialogContent className="max-w-lg" dir={dir}>
+        <DialogHeader>
+          <DialogTitle>שליחת מייל</DialogTitle>
+        </DialogHeader>
+        {emailTarget && (
+          <div className="space-y-4">
+            <div>
+              <Label>אל</Label>
+              <Input value={emailTarget.emails || ''} disabled dir="ltr" />
+            </div>
+            <div>
+              <Label>נושא</Label>
+              <Input value={emailSubject} onChange={(e) => setEmailSubject(e.target.value)} />
+            </div>
+            <div>
+              <Label>תוכן</Label>
+              <Textarea value={emailBody} onChange={(e) => setEmailBody(e.target.value)} rows={5} />
+            </div>
+            {emailTarget.formUrl && (
+              <div className="rounded-md border border-border bg-muted/40 p-3">
+                <div className="flex items-start gap-2">
+                  <Checkbox
+                    id="attach-form-link"
+                    checked={attachFormLink}
+                    onCheckedChange={(c) => setAttachFormLink(c === true)}
+                    className="mt-1"
+                  />
+                  <div className="flex-1 space-y-1">
+                    <Label htmlFor="attach-form-link" className="cursor-pointer">
+                      צרף קישור למייל
+                    </Label>
+                    <a
+                      href={emailTarget.formUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 break-all text-xs text-primary hover:underline"
+                      dir="ltr"
+                    >
+                      <ExternalLink className="h-3 w-3 shrink-0" />
+                      <span className="break-all">{emailTarget.formUrl}</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
+            <Button className="w-full" onClick={handleSendEmail}>
+              <Mail className="h-4 w-4" />
+              שלח
+            </Button>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+
     </div>
   );
 };
