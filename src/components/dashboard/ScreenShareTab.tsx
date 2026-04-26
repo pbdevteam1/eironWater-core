@@ -251,9 +251,13 @@ const ScreenShareTab: React.FC = () => {
 
   useEffect(() => {
     load();
-    const id = setInterval(load, POLL_INTERVAL);
+    loadWaitingRequests();
+    const id = setInterval(() => {
+      load();
+      loadWaitingRequests();
+    }, POLL_INTERVAL);
     return () => clearInterval(id);
-  }, [load]);
+  }, [load, loadWaitingRequests]);
 
   // Tick every second for wait-time counters
   useEffect(() => {
