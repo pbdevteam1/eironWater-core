@@ -102,6 +102,26 @@ const ScreenShareTab: React.FC = () => {
   const [joiningId, setJoiningId] = useState<string | null>(null);
   const [, setTick] = useState(0);
 
+  // Email modal state for waiting requests
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
+  const [emailTarget, setEmailTarget] = useState<WaitingRequest | null>(null);
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailBody, setEmailBody] = useState('');
+  const [attachFormLink, setAttachFormLink] = useState(false);
+
+  const openEmailModal = (r: WaitingRequest) => {
+    setEmailTarget(r);
+    setEmailSubject(`פנייה ${r.lookupCode || ''}`.trim());
+    setEmailBody('');
+    setAttachFormLink(false);
+    setEmailModalOpen(true);
+  };
+
+  const handleSendEmail = () => {
+    setEmailModalOpen(false);
+    toast({ title: 'המייל נשלח', description: emailTarget?.emails || '' });
+  };
+
   const loadWaitingRequests = useCallback(async () => {
     const token = getStoredToken();
     if (!token) return;
