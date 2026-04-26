@@ -110,11 +110,13 @@ const ScreenShareTab: React.FC = () => {
       const data = await response.json();
       const list: WaitingRequest[] = Array.isArray(data)
         ? data
-        : Array.isArray(data?.requests)
-          ? data.requests
-          : Array.isArray(data?.data)
-            ? data.data
-            : [];
+        : Array.isArray(data?.waitingVisitors)
+          ? data.waitingVisitors
+          : Array.isArray(data?.requests)
+            ? data.requests
+            : Array.isArray(data?.data)
+              ? data.data
+              : [];
       setWaitingRequests(list);
     } catch {
       // silent — keeps existing list
