@@ -92,7 +92,7 @@ const getLocation = (v: Visitor): string =>
 /* ------------------------------------------------------------------ */
 
 const ScreenShareTab: React.FC = () => {
-  const { t, dir } = useLanguage();
+  const { t, dir, language } = useLanguage();
   const { user } = useAuth();
   const [visitors, setVisitors] = useState<Visitor[]>([]);
   const [waitingRequests, setWaitingRequests] = useState<WaitingRequest[]>([]);
