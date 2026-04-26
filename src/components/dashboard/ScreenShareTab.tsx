@@ -91,11 +91,35 @@ const ScreenShareTab: React.FC = () => {
   const { t, dir } = useLanguage();
   const { user } = useAuth();
   const [visitors, setVisitors] = useState<Visitor[]>([]);
+  const [waitingRequests, setWaitingRequests] = useState<WaitingRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [joiningId, setJoiningId] = useState<string | null>(null);
   const [, setTick] = useState(0);
+
+  const loadWaitingRequests = useCallback(async () => {
+    const token = getStoredToken();
+    if (!token) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/WCP/getWaitingRequests`, {
+        method: 'GET',
+        headers: { realm: 'meieiron', 'access-token': token },
+      });
+      if (!response.ok) return;
+      const data = await response.json();
+      const list: WaitingRequest[] = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.requests)
+          ? data.requests
+          : Array.isArray(data?.data)
+            ? data.data
+            : [];
+      setWaitingRequests(list);
+    } catch {
+      // silent — keeps existing list
+    }
+  }, []);
 
   const load = useCallback(async () => {
     const token = getStoredToken();
