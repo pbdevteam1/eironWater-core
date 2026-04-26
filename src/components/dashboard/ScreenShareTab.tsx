@@ -503,6 +503,7 @@ const ScreenShareTab: React.FC = () => {
                 <TableRow className="border-border bg-primary/10">
                   <TableHead className={`${align} font-bold text-foreground`}>קוד זיהוי</TableHead>
                   <TableHead className={`${align} font-bold text-foreground`}>תאריך פתיחה</TableHead>
+                  <TableHead className={`${align} font-bold text-foreground`}>זמן שעבר</TableHead>
                   <TableHead className={`${align} font-bold text-foreground`}>סטטוס</TableHead>
                   <TableHead className={`${align} font-bold text-foreground`}>עיר</TableHead>
                   <TableHead className={`${align} font-bold text-foreground`}>פעולות</TableHead>
@@ -518,6 +519,21 @@ const ScreenShareTab: React.FC = () => {
                       : statusStr === '0'
                         ? 'border-transparent bg-yellow-500/15 text-yellow-700 dark:text-yellow-400'
                         : '';
+
+                  // Elapsed time since insertDate
+                  let elapsedLabel = '—';
+                  let isOverdue = false;
+                  if (r.insertDate) {
+                    const totalSec = Math.max(0, Math.floor((Date.now() - new Date(r.insertDate).getTime()) / 1000));
+                    const days = Math.floor(totalSec / 86400);
+                    const hours = Math.floor((totalSec % 86400) / 3600);
+                    const minutes = Math.floor((totalSec % 3600) / 60);
+                    const seconds = totalSec % 60;
+                    if (days > 0) elapsedLabel = `${days} ימים ${hours}:${String(minutes).padStart(2, '0')}`;
+                    else elapsedLabel = `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                    isOverdue = totalSec >= 86400;
+                  }
+
                   return (
                     <TableRow key={r.lookupCode || idx} className="hover:bg-muted/50">
                       <TableCell className={`${align} font-mono text-xs text-foreground`}>
@@ -525,6 +541,9 @@ const ScreenShareTab: React.FC = () => {
                       </TableCell>
                       <TableCell className={`${align} text-xs text-muted-foreground`}>
                         {r.insertDate ? new Date(r.insertDate).toLocaleString('he-IL') : '—'}
+                      </TableCell>
+                      <TableCell className={`${align} font-mono text-xs ${isOverdue ? 'font-bold text-destructive' : 'text-muted-foreground'}`}>
+                        {elapsedLabel}
                       </TableCell>
                       <TableCell className={align}>
                         <Badge variant="outline" className={`text-xs ${statusClass}`}>{statusLabel}</Badge>
