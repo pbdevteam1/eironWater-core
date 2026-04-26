@@ -1,64 +1,93 @@
+## מטרה
+לחבר את כפתור "שלח" במודל שליחת המייל (טבלת בקשות ממתינות) ל-API אמיתי, ולהוסיף טקסט ברירת מחדל דו-לשוני (עברית + ערבית) הן בנושא והן בגוף המייל.
 
+## קובץ מעורב
+- `src/components/dashboard/ScreenShareTab.tsx`
 
-## התאמת קריאת POST ל־watch_url בדומה לגיחון
+---
 
-### מה קורה עכשיו (ולמה זה נכשל)
-הקריאה אצלנו פונה ל:
+## שינוי 1 — נושא (Subject) דו-לשוני
+
+ב-`openEmailModal`, ברירת המחדל ל-Subject תהיה דו-לשונית:
+
 ```
-POST /WCP/visitors/{unique_id}/watch_url
-Headers: access-token, realm: meieiron
-Body: כולל short_id, ללא webhook_url
-```
-
-בגיחון (העובד) הקריאה היא:
-```
-POST /cbtest/visitors/{short_id}/watch_url
-Headers: x-api-key, realm: hagihon
-Body: ללא short_id, כולל webhook_url
+פנייה {lookupCode} / استفسار {lookupCode}
 ```
 
-ההבדלים הקריטיים: שם ה־header (`x-api-key` ולא `access-token`), שימוש ב־`short_id` בנתיב (לא `unique_id`), והוספת `webhook_url` ל־body.
+(במקום `פנייה {lookupCode}` הקיים)
 
-### מה נשנה (קובץ יחיד)
+---
 
-**`src/components/dashboard/ScreenShareTab.tsx`** – פונקציית `handleJoin`:
+## שינוי 2 — גוף (Body) ברירת מחדל דו-לשוני
 
-1. **נתיב**: לשנות מ־`visitors/${visitorId}` ל־`visitors/${v.short_id}/watch_url` (תמיד `short_id`, כמו בגיחון).
-2. **Headers**: להחליף `access-token` ל־`x-api-key` (זה ה־header שה־API מצפה לו). `realm` נשאר `meieiron`.
-3. **Body**:
-   - להסיר את שדה `short_id` (לא נשלח בגיחון – הוא בנתיב).
-   - להוסיף `webhook_url` (קבוע: `https://testapis-pb.api-connect.co.il/webhook`).
-   - לשנות `language` מ־`'he'` ל־`'en'` כמו בגיחון (אופציונלי – ניתן להשאיר `'he'` אם מועדף).
-4. **תוצאה**: קריאת `data.watch_url` תחזיר את הקישור.
+ב-`openEmailModal`, במקום `setEmailBody('')` נמלא טקסט פתיחה מנומס בשתי השפות, מופרדים בקו מפריד:
 
-### תצוגת הסשן (אופציונלי – שיפור)
-בגיחון הסשן נפתח כ־**iframe בתוך הדף** (לא בטאב חדש), עם כפתור הרחבה וכפתור סגירה, וזיהוי אוטומטי של סיום סשן. אם תרצה, אוסיף גם זאת – אבל הצעד הראשון הוא רק לתקן את ה־POST כדי שיעבוד.
+```
+שלום,
 
-### פירוט טכני
+בהמשך לפנייתך באתר מי עירון, נשמח לסייע.
+לכל שאלה ניתן להשיב למייל זה.
 
-```ts
-// במקום הפניה ל־visitorId, שימוש ב־short_id:
-const res = await fetch(
-  `${API_BASE_URL}/WCP/visitors/${v.short_id}/watch_url`,
+בברכה,
+צוות מי עירון
+
+— — —
+
+السلام عليكم،
+
+تكملةً لاستفسارك في موقع مياه عيرون، يسعدنا مساعدتك.
+لأي سؤال يمكنكم الرد على هذا البريد.
+
+مع تحياتنا،
+طاقم مياه عيرون
+```
+
+המשתמש יוכל כמובן לערוך את הטקסט לפני שליחה.
+
+---
+
+## שינוי 3 — צירוף הקישור גם הוא דו-לשוני
+
+ב-`handleSendEmail`, כאשר `attachFormLink` מסומן, נוסיף לסוף ה-body שתי שורות:
+
+```
+קישור לטופס: {formUrl}
+رابط النموذج: {formUrl}
+```
+
+---
+
+## שינוי 4 — חיווט POST /WCP/sendEmail
+
+הופך את `handleSendEmail` ל-`async`. שולח בקשה:
+
+- **URL**: `${API_BASE_URL}/WCP/sendEmail`
+- **Headers**: `realm: meieiron`, `access-token: <token>`, `Content-Type: application/json`
+- **Body**:
+  ```json
   {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': token,        // היה: 'access-token'
-      realm: 'meieiron',
-    },
-    body: JSON.stringify({
-      agent: { id: agentId, name: agentName },
-      branding: { naked: true, on_end_url: `${origin}/`, retry_url: `${origin}/` },
-      initial_notes: '...',
-      metadata: { /* ללא שינוי */ },
-      permissions: { /* ללא שינוי */ },
-      language: 'he',
-      webhook_url: 'https://testapis-pb.api-connect.co.il/webhook', // חדש
-    }),
-  },
-);
-```
+    "to": "<emailTarget.emails>",
+    "subject": "<emailSubject>",
+    "body": "<emailBody + הקישור הדו-לשוני אם מסומן>",
+    "metadata": {
+      "lookupCode": "...",
+      "phoneNumber": "...",
+      "customerCity": "...",
+      "formUrl": "...",
+      "attachedFormLink": true/false,
+      "insertDate": "..."
+    }
+  }
+  ```
 
-קובץ ערוך: `src/components/dashboard/ScreenShareTab.tsx` בלבד.
+### טיפול UI
+- מצב חדש `sending` (boolean) — נעילה של הכפתור והצגת "שולח..." בזמן הבקשה.
+- בהצלחה (`response.ok`): toast "המייל נשלח בהצלחה" + סגירת המודל.
+- בכישלון: toast שגיאה (variant destructive), המודל נשאר פתוח כדי שאפשר יהיה לנסות שוב.
 
+---
+
+## מה לא משתנה
+- הצ'קבוקס "צרף קישור למייל" וקישור הצפייה ב-URL נשארים כפי שהם.
+- שאר הטבלה (חיפוש, סטטוס, זמן שעבר מפתיחה) ללא שינוי.
+- אין שינוי בקבצי תרגום — הטקסטים בעברית/ערבית הם תוכן ברירת מחדל של המייל עצמו (לא UI), לכן לא מבוססי `t()`.

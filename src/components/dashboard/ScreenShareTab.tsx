@@ -109,6 +109,7 @@ const ScreenShareTab: React.FC = () => {
   const [emailBody, setEmailBody] = useState('');
   const [attachFormLink, setAttachFormLink] = useState(false);
   const [waitingSearch, setWaitingSearch] = useState('');
+  const [sending, setSending] = useState(false);
 
   const filteredWaitingRequests = useMemo(() => {
     if (!waitingSearch.trim()) return waitingRequests;
@@ -121,15 +122,85 @@ const ScreenShareTab: React.FC = () => {
 
   const openEmailModal = (r: WaitingRequest) => {
     setEmailTarget(r);
-    setEmailSubject(`פנייה ${r.lookupCode || ''}`.trim());
-    setEmailBody('');
+    const code = r.lookupCode || '';
+    setEmailSubject(`פנייה ${code} / استفسار ${code}`.trim());
+    setEmailBody(
+      'שלום,\n\n' +
+      'בהמשך לפנייתך באתר מי עירון, נשמח לסייע.\n' +
+      'לכל שאלה ניתן להשיב למייל זה.\n\n' +
+      'בברכה,\n' +
+      'צוות מי עירון\n\n' +
+      '— — —\n\n' +
+      'السلام عليكم،\n\n' +
+      'تكملةً لاستفساركم في موقع مياه عيرون، يسعدنا مساعدتكم.\n' +
+      'لأي سؤال يمكنكم الرد على هذا البريد.\n\n' +
+      'مع تحياتنا،\n' +
+      'طاقم مياه عيرون'
+    );
     setAttachFormLink(false);
     setEmailModalOpen(true);
   };
 
-  const handleSendEmail = () => {
-    setEmailModalOpen(false);
-    toast({ title: 'המייל נשלח', description: emailTarget?.emails || '' });
+  const handleSendEmail = async () => {
+    if (!emailTarget) return;
+    const token = getStoredToken();
+    if (!token) {
+      toast({ title: 'שגיאה', description: 'אין הרשאה', variant: 'destructive' });
+      return;
+    }
+
+    let body = emailBody;
+    if (attachFormLink && emailTarget.formUrl) {
+      body +=
+        `\n\n— — —\n\n` +
+        `קישור לטופס: ${emailTarget.formUrl}\n` +
+        `رابط النموذج: ${emailTarget.formUrl}`;
+    }
+
+    const payload = {
+      to: emailTarget.emails || '',
+      subject: emailSubject,
+      body,
+      metadata: {
+        lookupCode: emailTarget.lookupCode || '',
+        phoneNumber: emailTarget.phoneNumber || '',
+        customerCity: emailTarget.customerCity || '',
+        formUrl: emailTarget.formUrl || '',
+        attachedFormLink: attachFormLink,
+        insertDate: emailTarget.insertDate || '',
+      },
+    };
+
+    setSending(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/WCP/sendEmail`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': token,
+          realm: 'meieiron',
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        toast({
+          title: 'שגיאה בשליחת המייל',
+          description: `שגיאה ${response.status}`,
+          variant: 'destructive',
+        });
+        return;
+      }
+      setEmailModalOpen(false);
+      toast({ title: 'המייל נשלח בהצלחה', description: emailTarget.emails || '' });
+    } catch {
+      toast({
+        title: 'שגיאה בשליחת המייל',
+        description: 'שגיאת תקשורת עם השרת',
+        variant: 'destructive',
+      });
+    } finally {
+      setSending(false);
+    }
   };
 
   const loadWaitingRequests = useCallback(async () => {
@@ -661,9 +732,9 @@ const ScreenShareTab: React.FC = () => {
                 </div>
               </div>
             )}
-            <Button className="w-full" onClick={handleSendEmail}>
+            <Button className="w-full" onClick={handleSendEmail} disabled={sending}>
               <Mail className="h-4 w-4" />
-              שלח
+              {sending ? 'שולח...' : 'שלח'}
             </Button>
           </div>
         )}
