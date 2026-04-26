@@ -311,25 +311,7 @@ const ScreenShareTab: React.FC = () => {
     );
   }
 
-  // Empty
-  if (!isLoading && visitors.length === 0) {
-    return (
-      <Card className="border-border bg-card shadow-sm">
-        <CardContent className="flex min-h-[400px] flex-col items-center justify-center py-12">
-          {error && <p className="mb-4 text-center text-sm text-destructive">{error}</p>}
-          <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-muted">
-            <Monitor className="h-12 w-12 text-muted-foreground" />
-          </div>
-          <h2 className="mb-2 text-xl font-semibold text-foreground">{t('screen.no_active')}</h2>
-          <p className="text-center text-muted-foreground">{t('screen.no_sharing')}</p>
-          <Button variant="outline" size="sm" onClick={load} className="mt-6">
-            <RefreshCw className="me-2 h-4 w-4" />
-            רענן
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
+  // (Empty state moved inline below so the waiting-requests table is always visible)
 
   const align = dir === 'rtl' ? 'text-right' : 'text-left';
 
