@@ -108,6 +108,16 @@ const ScreenShareTab: React.FC = () => {
   const [emailSubject, setEmailSubject] = useState('');
   const [emailBody, setEmailBody] = useState('');
   const [attachFormLink, setAttachFormLink] = useState(false);
+  const [waitingSearch, setWaitingSearch] = useState('');
+
+  const filteredWaitingRequests = useMemo(() => {
+    if (!waitingSearch.trim()) return waitingRequests;
+    const q = waitingSearch.trim().toLowerCase();
+    return waitingRequests.filter(r =>
+      [r.lookupCode, r.phoneNumber, r.emails, r.customerCity, r.formUrl, r.status, r.insertDate]
+        .some(f => f?.toString().toLowerCase().includes(q)),
+    );
+  }, [waitingRequests, waitingSearch]);
 
   const openEmailModal = (r: WaitingRequest) => {
     setEmailTarget(r);
