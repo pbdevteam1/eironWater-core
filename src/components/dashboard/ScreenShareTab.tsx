@@ -560,8 +560,17 @@ const ScreenShareTab: React.FC = () => {
                       <TableCell className={`${align} text-xs text-muted-foreground`}>
                         {r.insertDate ? new Date(r.insertDate).toLocaleString('he-IL') : '—'}
                       </TableCell>
-                      <TableCell className={`${align} font-mono text-xs ${isOverdue ? 'font-bold text-destructive' : 'text-muted-foreground'}`}>
-                        {elapsedLabel}
+                      <TableCell className={align}>
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-xs tabular-nums ${
+                            isOverdue
+                              ? 'border-destructive/30 bg-destructive/10 font-semibold text-destructive'
+                              : 'border-border bg-muted/40 text-foreground'
+                          }`}
+                        >
+                          <Clock className="h-3 w-3" />
+                          {elapsedLabel}
+                        </span>
                       </TableCell>
                       <TableCell className={align}>
                         <Badge variant="outline" className={`text-xs ${statusClass}`}>{statusLabel}</Badge>
