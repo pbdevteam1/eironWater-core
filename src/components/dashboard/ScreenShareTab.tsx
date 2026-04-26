@@ -499,7 +499,18 @@ const ScreenShareTab: React.FC = () => {
       <CardContent className="py-4">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h3 className="text-lg font-semibold text-foreground">בקשות שממתינות לשיחה</h3>
-          <Badge variant="outline">{waitingRequests.length}</Badge>
+          <Badge variant="outline">{filteredWaitingRequests.length}</Badge>
+        </div>
+
+        <div className="relative mb-4">
+          <Search className={`absolute ${dir === 'rtl' ? 'right-3' : 'left-3'} top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground`} />
+          <Input
+            placeholder="חיפוש לפי קוד, טלפון, מייל, עיר..."
+            value={waitingSearch}
+            onChange={(e) => setWaitingSearch(e.target.value)}
+            className={dir === 'rtl' ? 'pr-10' : 'pl-10'}
+            dir={dir}
+          />
         </div>
 
         {waitingRequests.length === 0 ? (
