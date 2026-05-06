@@ -102,50 +102,58 @@ const RequestsTab: React.FC = () => {
         headers: { realm: 'meieiron', 'x-api-key': token, 'access-token': token },
       });
       if (!response.ok) { setPdfError(`שגיאה ${response.status}`); return; }
-      const ct = response.headers.get('content-type') || '';
-      const toBlobUrl = (b64: string) => {
-        const clean = b64.replace(/^data:[^,]+,/, '').replace(/\s/g, '');
-        const bin = atob(clean);
-        const bytes = new Uint8Array(bin.length);
-        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-        return URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+
+      const displayPdfFromBase64 = (base64PDF: string) => {
+        if (!base64PDF) throw new Error('Empty BASE64PDF');
+        let b64 = base64PDF;
+        if (b64.includes(',')) b64 = b64.split(',')[1];
+        b64 = b64.replace(/\s/g, '');
+        const byteCharacters = atob(b64);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) byteNumbers[i] = byteCharacters.charCodeAt(i);
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'application/pdf' });
+        return URL.createObjectURL(blob);
       };
+
       const findBase64 = (v: any): string | null => {
         if (!v) return null;
         if (typeof v === 'string') {
-          const s = v.trim();
+          const s = v.trim().replace(/^"|"$/g, '');
+          if (s.length > 100 && /^[A-Za-z0-9+/=\s]+$/.test(s.slice(0, 200))) return s;
           if (s.startsWith('JVBER') || s.startsWith('data:application/pdf')) return s;
           return null;
         }
         if (Array.isArray(v)) { for (const x of v) { const r = findBase64(x); if (r) return r; } return null; }
-        if (typeof v === 'object') { for (const k of Object.keys(v)) { const r = findBase64(v[k]); if (r) return r; } }
+        if (typeof v === 'object') {
+          // Prefer common key names
+          for (const key of ['BASE64PDF', 'base64PDF', 'base64', 'pdf', 'PDF', 'data', 'file']) {
+            if (v[key]) { const r = findBase64(v[key]); if (r) return r; }
+          }
+          for (const k of Object.keys(v)) { const r = findBase64(v[k]); if (r) return r; }
+        }
         return null;
       };
+
+      const ct = response.headers.get('content-type') || '';
       if (ct.includes('application/pdf')) {
         const blob = await response.blob();
         setPdfUrl(URL.createObjectURL(blob));
       } else {
         const text = await response.text();
-        let json: any = null;
-        try { json = JSON.parse(text); } catch { /* not json */ }
-        if (json) {
-          const b64 = findBase64(json) || (typeof json?.url === 'string' ? null : null);
-          if (b64) {
-            setPdfUrl(toBlobUrl(b64));
-          } else if (typeof json?.url === 'string') {
-            setPdfUrl(json.url);
-          } else {
-            console.error('WCPGetPDF unexpected response:', json);
-            setPdfError('פורמט תגובה לא נתמך');
-          }
+        let b64: string | null = null;
+        try {
+          const json = JSON.parse(text);
+          b64 = findBase64(json);
+          if (!b64 && typeof json?.url === 'string') { setPdfUrl(json.url); return; }
+        } catch {
+          b64 = findBase64(text);
+        }
+        if (b64) {
+          setPdfUrl(displayPdfFromBase64(b64));
         } else {
-          // Plain base64 string body
-          const trimmed = text.trim().replace(/^"|"$/g, '');
-          if (trimmed.startsWith('JVBER') || trimmed.startsWith('data:application/pdf')) {
-            setPdfUrl(toBlobUrl(trimmed));
-          } else {
-            setPdfError('פורמט תגובה לא נתמך');
-          }
+          console.error('WCPGetPDF unexpected response:', text.slice(0, 300));
+          setPdfError('פורמט תגובה לא נתמך');
         }
       }
     } catch {
