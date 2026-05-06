@@ -258,8 +258,8 @@ const RequestsTab: React.FC = () => {
       <Dialog open={viewModalOpen} onOpenChange={setViewModalOpen}>
         <DialogContent className="max-w-3xl" dir={dir}>
           <DialogHeader><DialogTitle>תצוגת טופס - {selectedRequest?.requestNumber}</DialogTitle></DialogHeader>
-          <div className="flex h-[60vh] items-center justify-center rounded-lg border bg-muted/30 text-muted-foreground">
-            תצוגת PDF תוצג כאן (יוגדר בהמשך)
+          <div className="flex h-[60vh] items-center justify-center rounded-lg border bg-muted/30 text-muted-foreground overflow-hidden">
+            {pdfLoading ? (<Loader2 className="h-8 w-8 animate-spin text-primary" />) : pdfError ? (<span className="text-destructive">{pdfError}</span>) : pdfUrl ? (<iframe src={pdfUrl} title="PDF" className="h-full w-full" />) : (<span>אין תצוגה זמינה</span>)}
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive/10" onClick={() => setViewModalOpen(false)}>
