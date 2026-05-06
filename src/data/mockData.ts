@@ -14,6 +14,10 @@ export interface Request {
   phone: string;
   email: string;
   description: string;
+  customerCity?: string;
+  linkToPage?: string;
+  statusCode?: number;
+  updateTime?: string;
 }
 
 export const statusColors: Record<RequestStatus, string> = {
