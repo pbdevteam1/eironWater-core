@@ -198,7 +198,7 @@ const RequestsTab: React.FC = () => {
                       <TableCell>{req.customerCity || '—'}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:bg-primary/10" onClick={() => { setSelectedRequest(req); setViewModalOpen(true); }}><Eye className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:bg-primary/10" onClick={() => { setSelectedRequest(req); setViewModalOpen(true); openPdf(req); }}><Eye className="h-4 w-4" /></Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-green-600 hover:bg-green-500/10" onClick={() => { setSelectedRequest(req); setPhoneModalOpen(true); }}><Phone className="h-4 w-4" /></Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-600 hover:bg-amber-500/10" onClick={() => openEmailModal(req)}><Mail className="h-4 w-4" /></Button>
                         </div>
