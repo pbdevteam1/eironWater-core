@@ -40,6 +40,9 @@ const getStatusDisplay = (code?: number): { label: string; className: string } =
 const RequestsTab: React.FC = () => {
   const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
   const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
   const [phoneModalOpen, setPhoneModalOpen] = useState(false);
   const [emailModalOpen, setEmailModalOpen] = useState(false);
   const [emailSubject, setEmailSubject] = useState('');
@@ -86,6 +89,41 @@ const RequestsTab: React.FC = () => {
   const totalPages = Math.max(1, Math.ceil(filteredRequests.length / ROWS_PER_PAGE));
   const safePage = Math.min(currentPage, totalPages);
   const paginatedRequests = filteredRequests.slice((safePage - 1) * ROWS_PER_PAGE, safePage * ROWS_PER_PAGE);
+
+  const openPdf = async (req: Request) => {
+    setPdfUrl(null);
+    setPdfError(null);
+    setPdfLoading(true);
+    const token = getStoredToken();
+    if (!token) { setPdfError('אין הרשאה'); setPdfLoading(false); return; }
+    try {
+      const response = await fetch(`${API_BASE_URL}/WCPGetPDF?formId=${encodeURIComponent(req.requestNumber)}`, {
+        method: 'GET',
+        headers: { realm: 'meieiron', 'x-api-key': token, 'access-token': token },
+      });
+      if (!response.ok) { setPdfError(`שגיאה ${response.status}`); return; }
+      const ct = response.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
+        const json = await response.json();
+        const b64 = json?.data?.pdf || json?.pdf || json?.data;
+        if (typeof b64 === 'string') {
+          const url = b64.startsWith('data:') ? b64 : `data:application/pdf;base64,${b64}`;
+          setPdfUrl(url);
+        } else if (typeof json?.url === 'string') {
+          setPdfUrl(json.url);
+        } else {
+          setPdfError('פורמט תגובה לא נתמך');
+        }
+      } else {
+        const blob = await response.blob();
+        setPdfUrl(URL.createObjectURL(blob));
+      }
+    } catch {
+      setPdfError('שגיאת תקשורת עם השרת');
+    } finally {
+      setPdfLoading(false);
+    }
+  };
 
   const openEmailModal = (req: Request) => {
     setSelectedRequest(req);
@@ -195,7 +233,7 @@ const RequestsTab: React.FC = () => {
                       <TableCell>{req.customerCity || '—'}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:bg-primary/10" onClick={() => { setSelectedRequest(req); setViewModalOpen(true); }}><Eye className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-primary hover:bg-primary/10" onClick={() => { setSelectedRequest(req); setViewModalOpen(true); openPdf(req); }}><Eye className="h-4 w-4" /></Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-green-600 hover:bg-green-500/10" onClick={() => { setSelectedRequest(req); setPhoneModalOpen(true); }}><Phone className="h-4 w-4" /></Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-600 hover:bg-amber-500/10" onClick={() => openEmailModal(req)}><Mail className="h-4 w-4" /></Button>
                         </div>
@@ -220,8 +258,8 @@ const RequestsTab: React.FC = () => {
       <Dialog open={viewModalOpen} onOpenChange={setViewModalOpen}>
         <DialogContent className="max-w-3xl" dir={dir}>
           <DialogHeader><DialogTitle>תצוגת טופס - {selectedRequest?.requestNumber}</DialogTitle></DialogHeader>
-          <div className="flex h-[60vh] items-center justify-center rounded-lg border bg-muted/30 text-muted-foreground">
-            תצוגת PDF תוצג כאן (יוגדר בהמשך)
+          <div className="flex h-[60vh] items-center justify-center rounded-lg border bg-muted/30 text-muted-foreground overflow-hidden">
+            {pdfLoading ? (<Loader2 className="h-8 w-8 animate-spin text-primary" />) : pdfError ? (<span className="text-destructive">{pdfError}</span>) : pdfUrl ? (<iframe src={pdfUrl} title="PDF" className="h-full w-full" />) : (<span>אין תצוגה זמינה</span>)}
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive/10" onClick={() => setViewModalOpen(false)}>
