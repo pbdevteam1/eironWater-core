@@ -103,20 +103,50 @@ const RequestsTab: React.FC = () => {
       });
       if (!response.ok) { setPdfError(`שגיאה ${response.status}`); return; }
       const ct = response.headers.get('content-type') || '';
-      if (ct.includes('application/json')) {
-        const json = await response.json();
-        const b64 = json?.data?.pdf || json?.pdf || json?.data;
-        if (typeof b64 === 'string') {
-          const url = b64.startsWith('data:') ? b64 : `data:application/pdf;base64,${b64}`;
-          setPdfUrl(url);
-        } else if (typeof json?.url === 'string') {
-          setPdfUrl(json.url);
-        } else {
-          setPdfError('פורמט תגובה לא נתמך');
+      const toBlobUrl = (b64: string) => {
+        const clean = b64.replace(/^data:[^,]+,/, '').replace(/\s/g, '');
+        const bin = atob(clean);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        return URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+      };
+      const findBase64 = (v: any): string | null => {
+        if (!v) return null;
+        if (typeof v === 'string') {
+          const s = v.trim();
+          if (s.startsWith('JVBER') || s.startsWith('data:application/pdf')) return s;
+          return null;
         }
-      } else {
+        if (Array.isArray(v)) { for (const x of v) { const r = findBase64(x); if (r) return r; } return null; }
+        if (typeof v === 'object') { for (const k of Object.keys(v)) { const r = findBase64(v[k]); if (r) return r; } }
+        return null;
+      };
+      if (ct.includes('application/pdf')) {
         const blob = await response.blob();
         setPdfUrl(URL.createObjectURL(blob));
+      } else {
+        const text = await response.text();
+        let json: any = null;
+        try { json = JSON.parse(text); } catch { /* not json */ }
+        if (json) {
+          const b64 = findBase64(json) || (typeof json?.url === 'string' ? null : null);
+          if (b64) {
+            setPdfUrl(toBlobUrl(b64));
+          } else if (typeof json?.url === 'string') {
+            setPdfUrl(json.url);
+          } else {
+            console.error('WCPGetPDF unexpected response:', json);
+            setPdfError('פורמט תגובה לא נתמך');
+          }
+        } else {
+          // Plain base64 string body
+          const trimmed = text.trim().replace(/^"|"$/g, '');
+          if (trimmed.startsWith('JVBER') || trimmed.startsWith('data:application/pdf')) {
+            setPdfUrl(toBlobUrl(trimmed));
+          } else {
+            setPdfError('פורמט תגובה לא נתמך');
+          }
+        }
       }
     } catch {
       setPdfError('שגיאת תקשורת עם השרת');
