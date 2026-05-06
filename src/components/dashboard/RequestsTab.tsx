@@ -289,7 +289,14 @@ const RequestsTab: React.FC = () => {
         <DialogContent className="max-w-3xl" dir={dir}>
           <DialogHeader><DialogTitle>תצוגת טופס - {selectedRequest?.requestNumber}</DialogTitle></DialogHeader>
           <div className="flex h-[60vh] items-center justify-center rounded-lg border bg-muted/30 text-muted-foreground overflow-hidden">
-            {pdfLoading ? (<Loader2 className="h-8 w-8 animate-spin text-primary" />) : pdfError ? (<span className="text-destructive">{pdfError}</span>) : pdfUrl ? (<iframe src={pdfUrl} title="PDF" className="h-full w-full" />) : (<span>אין תצוגה זמינה</span>)}
+            {pdfLoading ? (<Loader2 className="h-8 w-8 animate-spin text-primary" />) : pdfError ? (<span className="text-destructive">{pdfError}</span>) : pdfUrl ? (
+              <object data={pdfUrl} type="application/pdf" className="h-full w-full">
+                <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-4 text-center">
+                  <span>הדפדפן חוסם תצוגת PDF מוטמעת</span>
+                  <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline">פתח את ה-PDF בכרטיסייה חדשה</a>
+                </div>
+              </object>
+            ) : (<span>אין תצוגה זמינה</span>)}
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive/10" onClick={() => setViewModalOpen(false)}>
