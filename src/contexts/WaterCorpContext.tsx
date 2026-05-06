@@ -32,24 +32,35 @@ const mapStatus = (status: string | undefined): RequestStatus => {
   return map[status || ''] || 'new';
 };
 
+const mapStatusFromCode = (code: number | undefined): RequestStatus => {
+  if (code === 2) return 'completed';
+  if (code === 3) return 'exceeded_time';
+  if (code === 0) return 'exceeded_time';
+  return 'in_progress';
+};
+
 const mapApiRequests = (raw: any): Request[] | null => {
   try {
-    const items = Array.isArray(raw) ? raw : raw?.requests;
+    const items = Array.isArray(raw) ? raw : Array.isArray(raw?.data) ? raw.data : raw?.requests;
     if (!Array.isArray(items) || !items.length) return null;
     return items.map((r: any, i: number) => ({
-      id: r.requestId?.toString() || String(i + 1),
-      requestNumber: r.requestId || '',
-      formName: r.requestName || '',
-      status: mapStatus(r.status),
-      openDate: r.createdAt || new Date().toISOString(),
+      id: r.formId?.toString() || String(i + 1),
+      requestNumber: r.formId || '',
+      formName: r.formName || '',
+      status: typeof r.status === 'number' ? mapStatusFromCode(r.status) : mapStatus(r.status),
+      statusCode: typeof r.status === 'number' ? r.status : undefined,
+      openDate: r.createdAt || r.updateTime || new Date().toISOString(),
       closeDate: r.closedAt || r.closeDate || '',
+      updateTime: r.updateTime || '',
       daysOpen: parseInt(r.totalPassTime?.match(/(\d+)/)?.[1] || '0', 10),
       idNumber: r.customerId || '',
-      fullName: r.fullName || r.customerName || '',
+      fullName: r.custFullName || r.fullName || r.customerName || '',
       payerNumber: r.customerId || '',
       phone: r.phoneNum || '',
       email: r.emailAddress || '',
-      description: r.requestName || '',
+      description: r.formName || '',
+      customerCity: r.customerCity || '',
+      linkToPage: r.link_to_page || '',
     }));
   } catch { return null; }
 };
