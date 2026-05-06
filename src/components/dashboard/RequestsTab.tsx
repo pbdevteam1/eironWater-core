@@ -287,15 +287,25 @@ const RequestsTab: React.FC = () => {
       {/* View / PDF preview + approve/reject */}
       <Dialog open={viewModalOpen} onOpenChange={setViewModalOpen}>
         <DialogContent className="max-w-3xl" dir={dir}>
-          <DialogHeader><DialogTitle>תצוגת טופס - {selectedRequest?.requestNumber}</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between gap-3">
+              <span>תצוגת טופס - {selectedRequest?.requestNumber}</span>
+              {pdfUrl && (
+                <a
+                  href={pdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download={`form-${selectedRequest?.requestNumber || 'document'}.pdf`}
+                  className="text-sm font-normal text-primary underline"
+                >
+                  פתח / הורד PDF
+                </a>
+              )}
+            </DialogTitle>
+          </DialogHeader>
           <div className="flex h-[60vh] items-center justify-center rounded-lg border bg-muted/30 text-muted-foreground overflow-hidden">
             {pdfLoading ? (<Loader2 className="h-8 w-8 animate-spin text-primary" />) : pdfError ? (<span className="text-destructive">{pdfError}</span>) : pdfUrl ? (
-              <object data={pdfUrl} type="application/pdf" className="h-full w-full">
-                <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-4 text-center">
-                  <span>הדפדפן חוסם תצוגת PDF מוטמעת</span>
-                  <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline">פתח את ה-PDF בכרטיסייה חדשה</a>
-                </div>
-              </object>
+              <iframe src={pdfUrl} title="PDF" className="h-full w-full border-0" />
             ) : (<span>אין תצוגה זמינה</span>)}
           </div>
           <DialogFooter className="gap-2">
