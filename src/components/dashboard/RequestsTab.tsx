@@ -90,6 +90,41 @@ const RequestsTab: React.FC = () => {
   const safePage = Math.min(currentPage, totalPages);
   const paginatedRequests = filteredRequests.slice((safePage - 1) * ROWS_PER_PAGE, safePage * ROWS_PER_PAGE);
 
+  const openPdf = async (req: Request) => {
+    setPdfUrl(null);
+    setPdfError(null);
+    setPdfLoading(true);
+    const token = getStoredToken();
+    if (!token) { setPdfError('אין הרשאה'); setPdfLoading(false); return; }
+    try {
+      const response = await fetch(`${API_BASE_URL}/WCPGetPDF?formId=${encodeURIComponent(req.requestNumber)}`, {
+        method: 'GET',
+        headers: { realm: 'meieiron', 'x-api-key': token, 'access-token': token },
+      });
+      if (!response.ok) { setPdfError(`שגיאה ${response.status}`); return; }
+      const ct = response.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
+        const json = await response.json();
+        const b64 = json?.data?.pdf || json?.pdf || json?.data;
+        if (typeof b64 === 'string') {
+          const url = b64.startsWith('data:') ? b64 : `data:application/pdf;base64,${b64}`;
+          setPdfUrl(url);
+        } else if (typeof json?.url === 'string') {
+          setPdfUrl(json.url);
+        } else {
+          setPdfError('פורמט תגובה לא נתמך');
+        }
+      } else {
+        const blob = await response.blob();
+        setPdfUrl(URL.createObjectURL(blob));
+      }
+    } catch {
+      setPdfError('שגיאת תקשורת עם השרת');
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
   const openEmailModal = (req: Request) => {
     setSelectedRequest(req);
     setEmailSubject(`פנייה ${req.requestNumber}`);
