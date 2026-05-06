@@ -259,9 +259,14 @@ const RequestsTab: React.FC = () => {
               <div><Label>נושא</Label><Input value={emailSubject} onChange={e => setEmailSubject(e.target.value)} /></div>
               <div><Label>תוכן ההודעה</Label><Textarea value={emailBody} onChange={e => setEmailBody(e.target.value)} rows={8} /></div>
               {selectedRequest.linkToPage && (
-                <div className="flex items-center gap-2">
-                  <Checkbox id="attach-form-link" checked={attachFormLink} onCheckedChange={(v) => setAttachFormLink(!!v)} />
-                  <Label htmlFor="attach-form-link" className="cursor-pointer">צרף קישור לטופס</Label>
+                <div className="space-y-2 rounded-lg border bg-muted/30 p-3">
+                  <div className="flex items-center gap-2">
+                    <Checkbox id="attach-form-link" checked={attachFormLink} onCheckedChange={(v) => setAttachFormLink(!!v)} />
+                    <Label htmlFor="attach-form-link" className="cursor-pointer">צרף קישור לטופס / إرفاق رابط النموذج</Label>
+                  </div>
+                  <a href={selectedRequest.linkToPage} target="_blank" rel="noopener noreferrer" className="block break-all text-xs text-primary underline" dir="ltr">
+                    {selectedRequest.linkToPage}
+                  </a>
                 </div>
               )}
               <Button className="w-full" disabled={sending} onClick={handleSendEmail}>
