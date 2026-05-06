@@ -56,9 +56,9 @@ export const checkWaterCorpLogin = async (): Promise<{ data?: any; error?: strin
   if (!token) return { error: 'לא מחובר' };
   refreshTokenExpiry();
   try {
-    const response = await fetch(`${API_BASE_URL}/waterCorpLogin/submitted`, {
+    const response = await fetch(`${API_BASE_URL}/WCPGetForms`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json', 'realm': 'meieiron', 'x-api-key': token },
+      headers: { 'Content-Type': 'application/json', 'realm': 'meieiron', 'access-token': token },
     });
     if (response.status === 401) { clearToken(); return { error: 'פג תוקף ההתחברות' }; }
     if (!response.ok) { const d = await response.json().catch(() => ({})); return { error: d.message || 'שגיאה' }; }
